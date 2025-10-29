@@ -1,9 +1,13 @@
-# Lab: Authorizing Requests
+# Lab: Authorizing Requests ✅ COMPLETED
 
 ## Scenario
 
 In this lab, we'll continue working on the blog site, and add some features that
 only logged in users have access to.
+
+## 🎉 Implementation Status
+
+**✅ COMPLETED**: All authorization features have been successfully implemented and tested.
 
 ## Tools & Resources
 
@@ -111,6 +115,62 @@ Best Practice documentation steps:
 * Delete any stale branches on GitHub
 * Remove unnecessary/commented out code
 * If needed, update git ignore to remove sensitive data
+
+## 🚀 Solution Summary
+
+### Features Implemented
+
+**1. MemberOnlyIndex Resource (`/members_only_articles`)**
+- ✅ Returns 401 Unauthorized if user not logged in
+- ✅ Returns only member-only articles for authenticated users
+- ✅ Uses Flask session for authentication checking
+
+**2. MemberOnlyArticle Resource (`/members_only_articles/<int:id>`)**
+- ✅ Returns 401 Unauthorized if user not logged in
+- ✅ Returns specific article by ID for authenticated users
+- ✅ Includes 404 error handling for non-existent articles
+
+### Key Implementation Details
+
+```python
+class MemberOnlyIndex(Resource):
+    def get(self):
+        # Check if user is logged in
+        if not session.get('user_id'):
+            return {'message': 'Unauthorized'}, 401
+        
+        # Return only member-only articles
+        member_articles = Article.query.filter(Article.is_member_only == True).all()
+        articles_json = [ArticleSchema().dump(article) for article in member_articles]
+        return make_response(articles_json, 200)
+
+class MemberOnlyArticle(Resource):
+    def get(self, id):
+        # Check if user is logged in
+        if not session.get('user_id'):
+            return {'message': 'Unauthorized'}, 401
+        
+        # Find and return the specific article
+        article = Article.query.filter(Article.id == id).first()
+        if not article:
+            return {'message': 'Article not found'}, 404
+        
+        article_json = ArticleSchema().dump(article)
+        return make_response(article_json, 200)
+```
+
+### Test Results
+All tests passing ✅:
+- `test_can_only_access_member_only_while_logged_in`
+- `test_member_only_articles_shows_member_only_articles`  
+- `test_can_only_access_member_only_article_while_logged_in`
+
+### API Endpoints
+
+| Endpoint | Method | Authentication Required | Description |
+|----------|--------|------------------------|-------------|
+| `/members_only_articles` | GET | ✅ Yes | Returns all member-only articles |
+| `/members_only_articles/<int:id>` | GET | ✅ Yes | Returns specific member-only article |
 
 ## Important Submission Note
 
